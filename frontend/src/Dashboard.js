@@ -10,7 +10,6 @@ function Dashboard() {
   const [apiStatus, setApiStatus] = useState("");
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
-
   const fetchData = async (endpoint, options) => {
     try {
       const response = await fetch(`${BASE_API_URL}${endpoint}`, options);
@@ -19,16 +18,14 @@ function Dashboard() {
       console.error("API call failed:", error);
     }
   };
+  const refreshTasks = () => fetchData("/tasks").then(data => setTasks(data));
 
   useEffect(() => {
     fetchData("/")
       .then(data => setApiStatus(data.message))
       .catch(() => setApiStatus("Failed to fetch data from API."));
-
     fetchData("/tasks").then(data => setTasks(data));
   }, []);
-
-  const refreshTasks = () => fetchData("/tasks").then(data => setTasks(data));
 
   const addTask = () => {
     fetchData("/tasks", {
@@ -68,12 +65,7 @@ function Dashboard() {
       </div>
       <div className="board">
         {tasks && tasks.map(column => (
-          <Column
-            key={column.id}
-            column={column}
-            moveTask={moveTask}
-            deleteTask={deleteTask}
-          />
+          <Column key={column.id} column={column} deleteTask={deleteTask} moveTask={moveTask} />
         ))}
       </div>
     </DndProvider>
@@ -81,28 +73,18 @@ function Dashboard() {
 }
 
 function Column({ column, moveTask, deleteTask }) {
-  const [, drop] = useDrop({
-    accept: ItemType.TASK,
-    drop: (draggedItem) => {
-      if (draggedItem.columnIndex !== column.id) {
-        moveTask(draggedItem.columnIndex, draggedItem.taskIndex, column.id, column.tasks.length);
-      }
+  const [, drop] = useDrop({accept: ItemType.TASK, drop: (draggedItem) => {
+    if (draggedItem.columnIndex !== column.id) {
+      moveTask(draggedItem.columnIndex, draggedItem.taskIndex, column.id, column.tasks.length);
     }
-  });
+  }});
 
   return (
     <div className="column" ref={drop}>
       <h3>{column.title}</h3>
       <ul>
         {column.tasks.map((taskObj, taskIndex) => (
-          <Task
-            key={taskObj.id}
-            task={taskObj.title}
-            columnIndex={column.id}
-            taskIndex={taskIndex}
-            moveTask={moveTask}
-            deleteTask={deleteTask}
-          />
+          <Task key={taskObj.id} task={taskObj.title} columnIndex={column.id} taskIndex={taskIndex} moveTask={moveTask} deleteTask={deleteTask} />
         ))}
       </ul>
     </div>
@@ -110,21 +92,12 @@ function Column({ column, moveTask, deleteTask }) {
 }
 
 function Task({ task, columnIndex, taskIndex, moveTask, deleteTask }) {
-  const [, ref] = useDrag({
-    type: ItemType.TASK,
-    item: { columnIndex, taskIndex },
-  });
-
-  const [, drop] = useDrop({
-    accept: ItemType.TASK,
-    drop: (draggedItem) => {
-      if (draggedItem.columnIndex !== columnIndex ||
-          draggedItem.taskIndex !== taskIndex) {
-        moveTask(draggedItem.columnIndex, draggedItem.taskIndex,
-                 columnIndex, taskIndex);
-      }
+  const [, ref] = useDrag({type: ItemType.TASK, item: { columnIndex, taskIndex }});
+  const [, drop] = useDrop({accept: ItemType.TASK, drop: (draggedItem) => {
+    if (draggedItem.columnIndex !== columnIndex || draggedItem.taskIndex !== taskIndex) {
+      moveTask(draggedItem.columnIndex, draggedItem.taskIndex, columnIndex, taskIndex);
     }
-  });
+  }});
 
   return (
     <li ref={(node) => ref(drop(node))}>
