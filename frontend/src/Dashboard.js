@@ -81,8 +81,17 @@ function Dashboard() {
 }
 
 function Column({ column, moveTask, deleteTask }) {
+  const [, drop] = useDrop({
+    accept: ItemType.TASK,
+    drop: (draggedItem) => {
+      if (draggedItem.columnIndex !== column.id) {
+        moveTask(draggedItem.columnIndex, draggedItem.taskIndex, column.id, column.tasks.length);
+      }
+    }
+  });
+
   return (
-    <div className="column">
+    <div className="column" ref={drop}>
       <h3>{column.title}</h3>
       <ul>
         {column.tasks.map((taskObj, taskIndex) => (
@@ -108,15 +117,13 @@ function Task({ task, columnIndex, taskIndex, moveTask, deleteTask }) {
 
   const [, drop] = useDrop({
     accept: ItemType.TASK,
-    hover: (draggedItem) => {
+    drop: (draggedItem) => {
       if (draggedItem.columnIndex !== columnIndex ||
           draggedItem.taskIndex !== taskIndex) {
         moveTask(draggedItem.columnIndex, draggedItem.taskIndex,
                  columnIndex, taskIndex);
-        draggedItem.taskIndex = taskIndex;
-        draggedItem.columnIndex = columnIndex;
       }
-    },
+    }
   });
 
   return (

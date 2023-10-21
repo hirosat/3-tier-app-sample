@@ -100,24 +100,20 @@ def update_task(task_id):
 
     # 同じカラム内での移動か異なるカラムへの移動かによって処理を分岐
     if task_to_move.column_id == new_column_id:
-        tasks_in_column = Task.query.filter_by(column_id=new_column_id).all()
         # 移動先の位置にあるタスクのインデックスを更新
-        for task in tasks_in_column:
-            if task.task_index >= new_task_index and task.id != task_id:
-                task.task_index += 1
+        tasks_to_shift = Task.query.filter(Task.column_id == new_column_id, Task.task_index >= new_task_index, Task.id != task_id).all()
+        for task in tasks_to_shift:
+            task.task_index += 1
     else:
-        tasks_in_old_column = Task.query.filter_by(column_id=task_to_move.column_id).all()
-        tasks_in_new_column = Task.query.filter_by(column_id=new_column_id).all()
-
         # 古いカラムのタスクのインデックスを更新
-        for task in tasks_in_old_column:
-            if task.task_index > task_to_move.task_index:
-                task.task_index -= 1
+        tasks_to_shift_down = Task.query.filter(Task.column_id == task_to_move.column_id, Task.task_index > task_to_move.task_index).all()
+        for task in tasks_to_shift_down:
+            task.task_index -= 1
 
         # 新しいカラムのタスクのインデックスを更新
-        for task in tasks_in_new_column:
-            if task.task_index >= new_task_index:
-                task.task_index += 1
+        tasks_to_shift_up = Task.query.filter(Task.column_id == new_column_id, Task.task_index >= new_task_index).all()
+        for task in tasks_to_shift_up:
+            task.task_index += 1
 
     # タスクを新しい位置に移動
     task_to_move.column_id = new_column_id

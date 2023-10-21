@@ -1,6 +1,5 @@
 import './App.css';
 import React from "react";
-import ReactDOM, { createRoot } from "react-dom";
 import Dashboard from './Dashboard';
 
 function App() {
@@ -12,7 +11,4 @@ function App() {
   );
 }
 
-const rootElement = document.getElementById("root");
-const root = createRoot(rootElement);
-root.render(<App />);
 export default App;
